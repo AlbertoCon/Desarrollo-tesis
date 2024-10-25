@@ -1,6 +1,32 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1 class="mt-5 text-center">Historial de Análisis</h1>
-    <p class="text-center">Aquí podrás ver un historial de todas las imágenes analizadas.</p>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Historial de Imágenes</h1>
+
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Imagen</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for imagen in imagenes %}
+                    <tr>
+                        <td>{{ imagen.nombre }}</td>
+                        <td>
+                            <img src="{{ imagen.imagen.url }}" alt="{{ imagen.nombre }}" style="max-width: 100px;">
+                        </td>
+                        <td>{{ imagen.get_tipo_display }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No hay imágenes en el historial.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

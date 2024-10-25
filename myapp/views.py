@@ -1,60 +1,61 @@
-# myapp/views.py
 import http.client
 import json
 import mimetypes
 from codecs import encode
 from django.http import JsonResponse
 from django.shortcuts import render
-from .models import Imagen
+from .models import generalImagen
 
 def cargar_imagen(request):
     if request.method == 'POST':
         if 'file' not in request.FILES:
             return JsonResponse({'error': 'No se subió ningún archivo'}, status=400)
 
-        imagen = Imagen.objects.create(
-            nombre=request.FILES['file'].name,
-            imagen=request.FILES['file']
-        )
+        nombre = request.FILES['file'].name
+        imagen = request.FILES['file']
 
-        resultado_api = verificar_si_es_ia(imagen.imagen.path)
-
+        # Verificar con la API si es IA o Humano
+        resultado_api = verificar_si_es_ia(imagen)
         try:
-            resultado_json = json.loads(resultado_api)  # Asegúrate que es un JSON válido
+            resultado_json = json.loads(resultado_api)
         except json.JSONDecodeError as e:
             return JsonResponse({'error': 'Respuesta inválida de la API', 'detalle': str(e)}, status=500)
 
+        # Determinar el tipo (IA o Humano)
+        tipo = 'ai' if resultado_json['report']['verdict'] == 'ai' else 'human'
+
+        # Guardar en el modelo generalImagen
+        imagen_guardada = generalImagen.objects.create(nombre=nombre, imagen=imagen, tipo=tipo)
+
         return JsonResponse({
             'message': 'Imagen subida con éxito',
-            'id': imagen.id,
+            'id': imagen_guardada.id,
             'resultado': resultado_json
         })
 
     return render(request, 'cargar_imagen.html')
 
-def verificar_si_es_ia(ruta_imagen):
-    """Función que se conecta con la API IA or NOT para verificar si la imagen es generada por IA."""
+def verificar_si_es_ia(imagen):
+    """Función que se conecta con la API IA or NOT."""
     conn = http.client.HTTPSConnection("api.aiornot.com")
     boundary = 'wL36Yn8afVp8Ag7AmP8qZ0SA4n1v9T'
     dataList = []
 
     dataList.append(encode('--' + boundary))
-    dataList.append(encode(f'Content-Disposition: form-data; name=object; filename={ruta_imagen}'))
+    dataList.append(encode(f'Content-Disposition: form-data; name=object; filename={imagen.name}'))
 
-    fileType = mimetypes.guess_type(ruta_imagen)[0] or 'application/octet-stream'
+    fileType = mimetypes.guess_type(imagen.name)[0] or 'application/octet-stream'
     dataList.append(encode(f'Content-Type: {fileType}'))
     dataList.append(encode(''))
 
-    with open(ruta_imagen, 'rb') as f:
-        dataList.append(f.read())
-
+    dataList.append(imagen.read())
     dataList.append(encode('--' + boundary + '--'))
     dataList.append(encode(''))
 
     body = b'\r\n'.join(dataList)
 
     headers = {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjMyYjJkMTRlLTA3ZmEtNDY4Yy05YTc1LTBjYjI5MzdhNzNjMSIsInVzZXJfaWQiOiIzMmIyZDE0ZS0wN2ZhLTQ2OGMtOWE3NS0wY2IyOTM3YTczYzEiLCJhdWQiOiJhY2Nlc3MiLCJleHAiOjAuMH0.bg6LTEl5XkdvfMssfcyK087UZQtUX77MS3kMnfK4vRc',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZjhiZTYyLWIzMjAtNDE1YS05NzcyLTg0YzBlYWRlMzE5ZSIsInVzZXJfaWQiOiI0YWY4YmU2Mi1iMzIwLTQxNWEtOTc3Mi04NGMwZWFkZTMxOWUiLCJhdWQiOiJhY2Nlc3MiLCJleHAiOjAuMH0.-vlq_PuS0lcJ9vMw1sCu1IV5lgBf9sOYgB3EGJdAXjI',
         'Accept': 'application/json',
         'Content-type': f'multipart/form-data; boundary={boundary}'
     }
@@ -64,16 +65,11 @@ def verificar_si_es_ia(ruta_imagen):
     data = res.read()
     conn.close()
 
-    # Imprime la respuesta en el servidor para depurar
-    print("Respuesta de la API:", data)
-
-    # Devuelve la respuesta decodificada
     return data.decode("utf-8")
 
-
-
 def historial(request):
-    return render(request, 'historial.html')
+    imagenes = generalImagen.objects.all()
+    return render(request, 'historial.html', {'imagenes': imagenes})
 
 def configuracion(request):
     return render(request, 'configuracion.html')

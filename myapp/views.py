@@ -69,3 +69,11 @@ def verificar_si_es_ia(ruta_imagen):
 
     # Devuelve la respuesta decodificada
     return data.decode("utf-8")
+
+
+
+def historial(request):
+    return render(request, 'historial.html')
+
+def configuracion(request):
+    return render(request, 'configuracion.html')

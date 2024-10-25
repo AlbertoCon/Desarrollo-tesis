@@ -4,7 +4,7 @@ import mimetypes
 from codecs import encode
 from django.http import JsonResponse
 from django.shortcuts import render
-from .models import generalImagen
+from .models import generalImagen, iaimagen, ImagenHumana, iaimagenverdos
 
 def cargar_imagen(request):
     if request.method == 'POST':
@@ -26,6 +26,14 @@ def cargar_imagen(request):
 
         # Guardar en el modelo generalImagen
         imagen_guardada = generalImagen.objects.create(nombre=nombre, imagen=imagen, tipo=tipo)
+
+        if tipo == 'ai':
+            # Guardar en el modelo ImagenIA y marcar la imagen
+            imagen_guardada = iaimagenverdos.objects.create(nombre=nombre, imagen=imagen)
+            imagen_guardada.marcar_imagen()  # Agregar el sello a la imagen
+        else:
+            # Guardar en el modelo ImagenHumana
+            imagen_guardada = ImagenHumana.objects.create(nombre=nombre, imagen=imagen)
 
         return JsonResponse({
             'message': 'Imagen subida con éxito',
@@ -55,7 +63,7 @@ def verificar_si_es_ia(imagen):
     body = b'\r\n'.join(dataList)
 
     headers = {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhZjhiZTYyLWIzMjAtNDE1YS05NzcyLTg0YzBlYWRlMzE5ZSIsInVzZXJfaWQiOiI0YWY4YmU2Mi1iMzIwLTQxNWEtOTc3Mi04NGMwZWFkZTMxOWUiLCJhdWQiOiJhY2Nlc3MiLCJleHAiOjAuMH0.-vlq_PuS0lcJ9vMw1sCu1IV5lgBf9sOYgB3EGJdAXjI',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQwY2JmNDA1LTBhZWUtNDQ2Yi1hZWZjLTc2NWIzNDBkNDZlNyIsInVzZXJfaWQiOiJkMGNiZjQwNS0wYWVlLTQ0NmItYWVmYy03NjViMzQwZDQ2ZTciLCJhdWQiOiJhY2Nlc3MiLCJleHAiOjAuMH0.oqJr5VSgaUVGE6EMCjD1CnQFQ40moxCFt4twkd0TQYQ',
         'Accept': 'application/json',
         'Content-type': f'multipart/form-data; boundary={boundary}'
     }

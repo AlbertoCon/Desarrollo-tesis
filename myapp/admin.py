@@ -9,4 +9,6 @@ admin.site.register(Imagengeneral)
 admin.site.register(ImagenIA)
 admin.site.register(ImagenHumana)
 admin.site.register(generalImagen)
+admin.site.register(iaimagenverdos)
+
 

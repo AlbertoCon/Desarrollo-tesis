@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cargar Imagen</title>
-
-    <!-- Estilos de Dropzone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
 </head>
 <body>
@@ -15,21 +13,37 @@
         {% csrf_token %}
     </form>
 
-    <!-- Scripts de Dropzone -->
+    <div id="resultado" style="margin-top: 20px;">
+        <h2>Resultado:</h2>
+        <p id="resultado-texto">Esperando resultado...</p>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
     <script>
         Dropzone.autoDiscover = false;
 
         const dropzone = new Dropzone("#mi-dropzone", {
-            maxFiles: 5,
-            maxFilesize: 2, // Tamaño máximo en MB
+            url: "/",
+            maxFiles: 1,
+            maxFilesize: 2,  // Tamaño máximo en MB
             acceptedFiles: "image/*",
+            headers: {
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
             init: function () {
                 this.on("success", function (file, response) {
-                    console.log("Imagen subida con éxito:", response);
+                    const resultadoTexto = document.getElementById('resultado-texto');
+                    if (resultadoTexto) {
+                        resultadoTexto.textContent = `Imagen subida con éxito. ID: ${response.id}`;
+                    }
                 });
-                this.on("error", function (file, errorMessage) {
-                    console.log("Error al subir:", errorMessage);
+
+                this.on("error", function (file, response) {
+                    console.error("Error al subir:", response);
+                    const resultadoTexto = document.getElementById('resultado-texto');
+                    if (resultadoTexto) {
+                        resultadoTexto.textContent = "Error al subir la imagen.";
+                    }
                 });
             }
         });

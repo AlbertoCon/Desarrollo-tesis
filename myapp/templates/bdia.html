@@ -2,20 +2,17 @@
 
 {% block content %}
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Historial de Imágenes</h1>
-
+        <h1 class="text-center mb-4">Historial de Imágenes hechas con IA</h1>
         <div class="text-center mt-3">
-            <a href="{% url 'descargar_imagenes_clasificadas_zip' %}" class="btn btn-secondary">Descargar imágenes clasificadas en ZIP</a>
+            <a href="{% url 'descargar_imagenes_zip' %}" class="btn btn-secondary">Descargar todas las imágenes</a>
+
         </div>
+ 
         <table class="table table-bordered">
             <thead class="table-dark">
                 <tr>
                     <th>Nombre</th>
                     <th>Imagen</th>
-                    <th>Tipo</th>
-                    <th>Origen</th>
-
-                    <th>Acciones</th>
 
                 </tr>
             </thead>
@@ -25,12 +22,7 @@
                         <td>{{ imagen.nombre }}</td>
                         <td>
                             <img src="{{ imagen.imagen.url }}" alt="{{ imagen.nombre }}" style="max-width: 100px;">
-                        </td>
-                        <td>{{ imagen.get_tipo_display }}</td>
-                        <td></td>
-                        <td>
-                            <button type="button" class="btn btn-danger">Eliminar</button>
-                        </td>
+                        </td
 
                     </tr>
                 {% empty %}
